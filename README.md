@@ -29,32 +29,6 @@ MinerIA propone una plataforma inteligente de inducción minera que combina simu
 
 ---
 
-## Dashboard y plataforma
-
-Interfaz principal del sistema de inducción minera inteligente.
-
-### Login
-
-![Dashboard 1](./img/Login.jpeg)
-
-### Panel General
-
-![Dashboard 2](./img/Panel%20General.jpeg)
-
-### Cursos de Capacitación
-
-![Dashboard 3](./img/Cursos%20de%20Capacitacion.jpeg)
-
-### Chat IA y asistencia técnica
-
-![Dashboard 4](./img/Asistente%20IA.jpeg)
-
-### Simulaciones VR
-
-![Dashboard 5](./img/Simulaciones%20VR.jpeg)
-
----
-
 ## Flujo de inducción
 
 | Etapa | Descripción | Requisito |
