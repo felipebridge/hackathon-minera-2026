@@ -6,7 +6,7 @@ Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el pr
 
 ---
 
-![Hackathon Minera 2026](./img/hackathon%20image.jpeg)
+![Hackathon Minera 2026](./img/Hackathon%20image.jpeg)
 
 ---
 
