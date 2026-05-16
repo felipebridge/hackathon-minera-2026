@@ -1,4 +1,4 @@
-# Hackathon Minera 2026 - Reinvencion de proceso de induccion en las mineras
+# Hackathon Minera 2026 - Reinvención del proceso de inducción en las mineras
 
 Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el proceso tradicional —manual impreso + charla de 8 horas— por un flujo de 4 etapas con VR, evaluación adaptativa y asistente IA disponible 24/7.
 
@@ -12,12 +12,11 @@ Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el pr
 
 ## Problema
 
-La industria minera en San Juan enfrenta desafíos críticos en los procesos de inducción y capacitación de personal: tiempos elevados de formación, baja trazabilidad del aprendizaje, riesgos operativos en entornos reales y dificultad para evaluar situaciones críticas antes del ingreso a mina.
+La industria minera en San Juan enfrenta desafíos críticos en los procesos de inducción y capacitación de personal: tiempos elevados de formación, baja trazabilidad del aprendizaje, riesgos operativos en entornos reales y dificultad para evaluar situaciones críticas antes del ingreso a la mina.
 
 ## Solución
 
 MinerIA propone una plataforma inteligente de inducción minera que combina simulaciones inmersivas en realidad virtual, automatización mediante inteligencia artificial y seguimiento centralizado del progreso de cada operario. El sistema permite capacitar, evaluar y detectar riesgos de manera más eficiente, segura y escalable para operaciones mineras en San Juan, Argentina.
-
 
 ---
 
@@ -33,7 +32,7 @@ Interfaz principal del sistema de inducción minera inteligente.
 
 ![Dashboard 2](./img/Panel%20General.jpeg)
 
-### Cursos de Capacitacion
+### Cursos de Capacitación
 
 ![Dashboard 3](./img/Cursos%20de%20Capacitacion.jpeg)
 
@@ -55,10 +54,10 @@ Interfaz principal del sistema de inducción minera inteligente.
 |-------|-------------|-----------|
 | Charla introductoria | Presencial con instructor — normativa, mapa de instalaciones, reglas críticas | ~1 hora |
 | Simulación VR | Meta Quest 2 — falla segura: situaciones de riesgo reales sin consecuencias físicas | Puntaje ≥ 70% |
-| Examen obligatorio | Preguntas situacionales por rol y área, basadas en Decreto 249/07 | 70% · máx. 3 intentos |
+| Examen obligatorio | Preguntas situacionales por rol y área, basadas en el Decreto 249/07 | 70% · máx. 3 intentos |
 | Experto IA 24/7 | RAG sobre documentación técnica oficial · WhatsApp + web | Acceso permanente |
 
-Sin aprobar cada etapa no se habilita la siguiente. Sin examen aprobado, sin acceso a faena.
+Sin aprobar cada etapa no se habilita la siguiente. Sin examen aprobado, no hay acceso a faena.
 
 ---
 
@@ -79,8 +78,3 @@ cp .env.example .env
 docker-compose up -d
 npm run db:migrar && npm run db:seed
 npm run dev                    
-```
-
----
-
-*Equipo Vector Mineral · Hackathon Minera 2026*
