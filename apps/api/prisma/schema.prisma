@@ -1,0 +1,461 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+enum RolUsuario {
+  ADMIN
+  INSTRUCTOR
+  EMPLEADO
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+  BLOQUEADO
+}
+
+model Usuario {
+  id                 String        @id @default(cuid())
+  nombre             String
+  apellido           String
+  email              String        @unique
+  contrasenaHash     String        @map("contrasena_hash")
+  rol                RolUsuario    @default(EMPLEADO)
+  estado             EstadoUsuario @default(ACTIVO)
+  telefono           String?       @unique
+  avatarUrl          String?       @map("avatar_url")
+  cargo              String?
+  area               String?
+  intentosFallidos   Int           @default(0) @map("intentos_fallidos")
+  bloqueadoHasta     DateTime?     @map("bloqueado_hasta")
+  ultimoAcceso       DateTime?     @map("ultimo_acceso")
+  creadoEn           DateTime      @default(now()) @map("creado_en")
+  actualizadoEn      DateTime      @updatedAt @map("actualizado_en")
+
+  tokenesRefresh       TokenRefresh[]
+  progresos            Progreso[]
+  resultados           ResultadoEvaluacion[]
+  certificaciones      Certificacion[]
+  sesionesChat         SesionChat[]
+  sesionesWhatsapp     SesionWhatsapp[]
+  documentosCargados   Documento[]
+  metricasUsuario      MetricaUsuario[]
+  cursosAsignados      CursoAsignado[]
+  induccion            InduccionEmpleado?
+  induccioesImpartidas InduccionEmpleado[] @relation("InstruccionesImpartidas")
+
+  @@map("usuarios")
+}
+
+model TokenRefresh {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  usuarioId String   @map("usuario_id")
+  expiraEn  DateTime @map("expira_en")
+  revocado  Boolean  @default(false)
+  creadoEn  DateTime @default(now()) @map("creado_en")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("tokens_refresh")
+}
+
+enum NivelCurso {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+}
+
+enum EstadoCurso {
+  BORRADOR
+  ACTIVO
+  ARCHIVADO
+}
+
+enum TipoContenido {
+  TEXTO
+  VIDEO
+  PDF
+  SIMULACION_VR
+  EVALUACION
+}
+
+model Curso {
+  id            String      @id @default(cuid())
+  titulo        String
+  descripcion   String
+  categoria     String
+  nivel         NivelCurso  @default(BASICO)
+  estado        EstadoCurso @default(BORRADOR)
+  duracionHoras Float       @map("duracion_horas")
+  imagenUrl     String?     @map("imagen_url")
+  requisitos    String[]
+  objetivos     String[]
+  etiquetas     String[]
+  ordenamiento  Int         @default(0)
+  creadoEn      DateTime    @default(now()) @map("creado_en")
+  actualizadoEn DateTime    @updatedAt @map("actualizado_en")
+
+  modulos         Modulo[]
+  progresos       Progreso[]
+  certificaciones Certificacion[]
+  asignaciones    CursoAsignado[]
+
+  @@map("cursos")
+}
+
+model CursoAsignado {
+  id          String    @id @default(cuid())
+  usuarioId   String    @map("usuario_id")
+  cursoId     String    @map("curso_id")
+  asignadoEn  DateTime  @default(now()) @map("asignado_en")
+  fechaLimite DateTime? @map("fecha_limite")
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  curso       Curso     @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, cursoId])
+  @@map("cursos_asignados")
+}
+
+model Modulo {
+  id              String        @id @default(cuid())
+  cursoId         String        @map("curso_id")
+  titulo          String
+  descripcion     String
+  orden           Int
+  tipoContenido   TipoContenido @map("tipo_contenido")
+  contenido       Json?
+  videoUrl        String?       @map("video_url")
+  duracionMinutos Int           @default(0) @map("duracion_minutos")
+  obligatorio     Boolean       @default(true)
+  creadoEn        DateTime      @default(now()) @map("creado_en")
+  actualizadoEn   DateTime      @updatedAt @map("actualizado_en")
+
+  curso        Curso        @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  evaluaciones Evaluacion[]
+  progresos    Progreso[]
+
+  @@map("modulos")
+}
+
+enum TipoPregunta {
+  OPCION_MULTIPLE
+  VERDADERO_FALSO
+  RESPUESTA_CORTA
+  SITUACIONAL
+}
+
+model Evaluacion {
+  id                 String   @id @default(cuid())
+  moduloId           String   @map("modulo_id")
+  titulo             String
+  descripcion        String?
+  tiempoLimiteMin    Int?     @map("tiempo_limite_min")
+  puntajeAprobacion  Int      @default(70) @map("puntaje_aprobacion")
+  intentosPermitidos Int      @default(3) @map("intentos_permitidos")
+  aleatorizar        Boolean  @default(false)
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  modulo    Modulo                @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  preguntas Pregunta[]
+  resultados ResultadoEvaluacion[]
+
+  @@map("evaluaciones")
+}
+
+model Pregunta {
+  id                String       @id @default(cuid())
+  evaluacionId      String       @map("evaluacion_id")
+  texto             String
+  tipo              TipoPregunta
+  opciones          Json?
+  respuestaCorrecta String?      @map("respuesta_correcta")
+  explicacion       String?
+  puntaje           Int          @default(1)
+  categoriaError    String?      @map("categoria_error")
+  orden             Int          @default(0)
+
+  evaluacion Evaluacion @relation(fields: [evaluacionId], references: [id], onDelete: Cascade)
+
+  @@map("preguntas")
+}
+
+model ResultadoEvaluacion {
+  id             String   @id @default(cuid())
+  usuarioId      String   @map("usuario_id")
+  evaluacionId   String   @map("evaluacion_id")
+  puntaje        Float
+  aprobado       Boolean
+  respuestas     Json
+  tiempoSegundos Int      @map("tiempo_segundos")
+  intento        Int      @default(1)
+  completadoEn   DateTime @default(now()) @map("completado_en")
+
+  usuario    Usuario    @relation(fields: [usuarioId], references: [id])
+  evaluacion Evaluacion @relation(fields: [evaluacionId], references: [id])
+
+  @@map("resultados_evaluaciones")
+}
+
+model Progreso {
+  id              String   @id @default(cuid())
+  usuarioId       String   @map("usuario_id")
+  cursoId         String   @map("curso_id")
+  moduloId        String?  @map("modulo_id")
+  porcentaje      Float    @default(0)
+  completado      Boolean  @default(false)
+  tiempoSegundos  Int      @default(0) @map("tiempo_segundos")
+  ultimaActividad DateTime @default(now()) @map("ultima_actividad")
+  creadoEn        DateTime @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  curso   Curso   @relation(fields: [cursoId], references: [id])
+  modulo  Modulo? @relation(fields: [moduloId], references: [id])
+
+  @@unique([usuarioId, cursoId, moduloId])
+  @@map("progresos")
+}
+
+model Certificacion {
+  id           String    @id @default(cuid())
+  usuarioId    String    @map("usuario_id")
+  cursoId      String    @map("curso_id")
+  codigoUnico  String    @unique @map("codigo_unico")
+  puntajeFinal Float     @map("puntaje_final")
+  archivoUrl   String?   @map("archivo_url")
+  emitidoEn    DateTime  @default(now()) @map("emitido_en")
+  validoHasta  DateTime? @map("valido_hasta")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  curso   Curso   @relation(fields: [cursoId], references: [id])
+
+  @@unique([usuarioId, cursoId])
+  @@map("certificaciones")
+}
+
+enum CanalChat {
+  WEB
+  WHATSAPP
+  API
+}
+
+enum RolMensaje {
+  USUARIO
+  ASISTENTE
+  SISTEMA
+}
+
+model SesionChat {
+  id            String    @id @default(cuid())
+  usuarioId     String?   @map("usuario_id")
+  canal         CanalChat
+  metadatos     Json?
+  activa        Boolean   @default(true)
+  creadaEn      DateTime  @default(now()) @map("creada_en")
+  actualizadaEn DateTime  @updatedAt @map("actualizada_en")
+
+  usuario          Usuario?            @relation(fields: [usuarioId], references: [id])
+  mensajes         MensajeChat[]
+  documentosUsados DocumentoEnSesion[]
+
+  @@map("sesiones_chat")
+}
+
+model MensajeChat {
+  id             String     @id @default(cuid())
+  sesionId       String     @map("sesion_id")
+  rol            RolMensaje
+  contenido      String
+  tokensUsados   Int?       @map("tokens_usados")
+  confianza      Float?
+  fuentesRAG     Json?      @map("fuentes_rag")
+  escaladoHumano Boolean    @default(false) @map("escalado_humano")
+  creadoEn       DateTime   @default(now()) @map("creado_en")
+
+  sesion SesionChat @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+
+  @@map("mensajes_chat")
+}
+
+model DocumentoEnSesion {
+  sesionId    String     @map("sesion_id")
+  documentoId String     @map("documento_id")
+  sesion      SesionChat @relation(fields: [sesionId], references: [id])
+  documento   Documento  @relation(fields: [documentoId], references: [id])
+
+  @@id([sesionId, documentoId])
+  @@map("documentos_en_sesion")
+}
+
+enum EstadoDocumento {
+  PENDIENTE
+  PROCESANDO
+  LISTO
+  ERROR
+}
+
+model Documento {
+  id             String          @id @default(cuid())
+  titulo         String
+  descripcion    String?
+  archivoUrl     String          @map("archivo_url")
+  nombreArchivo  String          @map("nombre_archivo")
+  tipoMime       String          @map("tipo_mime")
+  tamanoBytes    BigInt          @map("tamano_bytes")
+  estado         EstadoDocumento @default(PENDIENTE)
+  errorProcesado String?         @map("error_procesado")
+  totalChunks    Int             @default(0) @map("total_chunks")
+  categoria      String?
+  etiquetas      String[]
+  cargadoPorId   String          @map("cargado_por_id")
+  creadoEn       DateTime        @default(now()) @map("creado_en")
+  actualizadoEn  DateTime        @updatedAt @map("actualizado_en")
+
+  cargadoPor Usuario          @relation(fields: [cargadoPorId], references: [id])
+  chunks     ChunkDocumento[]
+  sesiones   DocumentoEnSesion[]
+
+  @@map("documentos")
+}
+
+model ChunkDocumento {
+  id           String                       @id @default(cuid())
+  documentoId  String                       @map("documento_id")
+  contenido    String
+  embedding    Unsupported("vector(3072)")? // text-embedding-3-large (3072 dims)
+  indice       Int
+  paginaInicio Int?                         @map("pagina_inicio")
+  paginaFin    Int?                         @map("pagina_fin")
+  metadatos    Json?
+  creadoEn     DateTime                     @default(now()) @map("creado_en")
+
+  documento Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  @@map("chunks_documentos")
+}
+
+enum EstadoSesionWA {
+  ACTIVA
+  INACTIVA
+  ESPERANDO_HUMANO
+}
+
+model SesionWhatsapp {
+  id            String         @id @default(cuid())
+  telefono      String         @unique
+  usuarioId     String?        @map("usuario_id")
+  estado        EstadoSesionWA @default(ACTIVA)
+  sesionChatId  String?        @map("sesion_chat_id")
+  ultimoMensaje DateTime?      @map("ultimo_mensaje")
+  metadata      Json?
+  creadaEn      DateTime       @default(now()) @map("creada_en")
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("sesiones_whatsapp")
+}
+
+enum EstadoSimulacion {
+  DESARROLLO
+  DISPONIBLE
+  MANTENIMIENTO
+}
+
+model Simulacion {
+  id              String           @id @default(cuid())
+  titulo          String
+  descripcion     String
+  escenario       String
+  nivel           NivelCurso
+  estado          EstadoSimulacion @default(DESARROLLO)
+  sdkRequerido    String?          @map("sdk_requerido")
+  archivoManifesto Json?           @map("archivo_manifesto")
+  metaQuestAppId  String?          @map("meta_quest_app_id")
+  duracionMinutos Int              @map("duracion_minutos")
+  objetivosVR     String[]         @map("objetivos_vr")
+  creadoEn        DateTime         @default(now()) @map("creado_en")
+
+  @@map("simulaciones")
+}
+
+enum EtapaInduccion {
+  CHARLA_INTRODUCTORIA
+  SIMULACION_VR
+  EXAMEN_OBLIGATORIO
+  EXPERTO_IA
+}
+
+enum EstadoInduccion {
+  EN_CURSO
+  SUSPENDIDA
+  COMPLETADA
+  REPROBADA
+}
+
+model InduccionEmpleado {
+  id          String          @id @default(cuid())
+  usuarioId   String          @map("usuario_id")
+  estado      EstadoInduccion @default(EN_CURSO)
+  etapaActual EtapaInduccion  @default(CHARLA_INTRODUCTORIA) @map("etapa_actual")
+
+  charlaCompletada   Boolean   @default(false) @map("charla_completada")
+  charlaCompletadaEn DateTime? @map("charla_completada_en")
+  instructorId       String?   @map("instructor_id")
+
+  simulacionVrId String?   @map("simulacion_vr_id")
+  vrCompletado   Boolean   @default(false) @map("vr_completado")
+  vrCompletadoEn DateTime? @map("vr_completado_en")
+  vrPuntaje      Float?    @map("vr_puntaje")
+  vrIntentos     Int       @default(0) @map("vr_intentos")
+
+  evaluacionId   String?   @map("evaluacion_id")
+  examenAprobado Boolean   @default(false) @map("examen_aprobado")
+  examenAprobadoEn DateTime? @map("examen_aprobado_en")
+  examenPuntaje  Float?    @map("examen_puntaje")
+  examenIntentos Int       @default(0) @map("examen_intentos")
+
+  completadaEn     DateTime? @map("completada_en")
+  certificacionId  String?   @map("certificacion_id")
+  tiempoTotalHoras Float?    @map("tiempo_total_horas")
+  iniciadaEn       DateTime  @default(now()) @map("iniciada_en")
+  actualizadaEn    DateTime  @updatedAt @map("actualizada_en")
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  instructor Usuario? @relation("InstruccionesImpartidas", fields: [instructorId], references: [id])
+
+  @@unique([usuarioId])
+  @@map("inducciones_empleados")
+}
+
+model MetricaUsuario {
+  id                    String   @id @default(cuid())
+  usuarioId             String   @map("usuario_id")
+  fecha                 DateTime @db.Date
+  minutosCursando       Int      @default(0) @map("minutos_cursando")
+  modulosCompletados    Int      @default(0) @map("modulos_completados")
+  evaluacionesAprobadas Int      @default(0) @map("evaluaciones_aprobadas")
+  evaluacionesFallidas  Int      @default(0) @map("evaluaciones_fallidas")
+  preguntasIA           Int      @default(0) @map("preguntas_ia")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@unique([usuarioId, fecha])
+  @@map("metricas_usuarios")
+}
+
+model ErrorFrecuente {
+  id          String   @id @default(cuid())
+  categoria   String
+  descripcion String
+  frecuencia  Int      @default(1)
+  cursoId     String?  @map("curso_id")
+  ultimaVez   DateTime @default(now()) @map("ultima_vez")
+
+  @@map("errores_frecuentes")
+}

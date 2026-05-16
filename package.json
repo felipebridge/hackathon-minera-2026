@@ -1,0 +1,52 @@
+{
+  "name": "mineria-capacitacion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema inteligente de capacitación minera con IA, realidad virtual y WhatsApp",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "db:migrar": "cd apps/api && npx prisma migrate dev",
+    "db:seed": "cd apps/api && npx prisma db seed",
+    "db:studio": "cd apps/api && npx prisma studio",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:bajar": "docker-compose down",
+    "setup": "node scripts/setup.js",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "rimraf": "^6.0.1",
+    "prettier": "^3.4.2",
+    "@types/node": "^22.10.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "turbo": {
+    "pipeline": {
+      "build": {
+        "dependsOn": ["^build"],
+        "outputs": [".next/**", "dist/**"]
+      },
+      "dev": {
+        "cache": false,
+        "persistent": true
+      },
+      "lint": {},
+      "test": {
+        "dependsOn": ["build"]
+      }
+    }
+  }
+}

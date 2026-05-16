@@ -1,0 +1,119 @@
+version: '3.9'
+
+networks:
+  red-mineria:
+    driver: bridge
+
+volumes:
+  postgres-datos:
+  redis-datos:
+  minio-datos:
+
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: mineria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mineria_capacitacion}
+      POSTGRES_USER: ${POSTGRES_USER:-mineria_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_local}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-datos:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - red-mineria
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mineria_admin} -d ${POSTGRES_DB:-mineria_capacitacion}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mineria-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-datos:/data
+    networks:
+      - red-mineria
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  minio:
+    image: minio/minio:latest
+    container_name: mineria-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minio_admin}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minio_secret_dev}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-datos:/data
+    networks:
+      - red-mineria
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: desarrollo
+    container_name: mineria-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mineria_admin}:${POSTGRES_PASSWORD:-dev_password_local}@postgres:5432/${POSTGRES_DB:-mineria_capacitacion}
+      REDIS_URL: redis://redis:6379
+      ALMACENAMIENTO_ENDPOINT: http://minio:9000
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/api/src:/app/src
+      - ./apps/api/prisma:/app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - red-mineria
+    command: npm run dev
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: desarrollo
+    container_name: mineria-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web/src:/app/src
+      - ./apps/web/public:/app/public
+    depends_on:
+      - api
+    networks:
+      - red-mineria
+    command: npm run dev

@@ -1,0 +1,71 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+dist/
+build/
+.next/
+out/
+.turbo/
+
+# Variables de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Base de datos local
+*.sqlite
+*.db
+postgres-data/
+
+# Temporales
+.cache/
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Prisma generated client
+apps/api/src/generated/
+
+# Archivos subidos localmente
+uploads/
+storage/
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+
+# IDE
+.vscode/settings.json
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Docker volumes locales
+docker-volumes/
+minio-data/
+redis-data/
+
+# Certificados SSL locales
+*.pem
+*.key
+*.crt
+
+# Profiling
+*.heapsnapshot
