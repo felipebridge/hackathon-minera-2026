@@ -6,6 +6,12 @@ Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el pr
 
 <p align="center">
   <a href="./informe_hackathon/InformeSolucionMinerIA.pdf">
+    <img src="https://img.shields.io/badge/📄%20Ver%20Informe%20Completo-2E7D32?style=for-the-badge&logo=readme&logoColor=white&labelColor=2E7D32" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="./informe_hackathon/InformeSolucionMinerIA.pdf">
     👉 Ver informe completo de la solución 👈
   </a>
 </p>
