@@ -71,10 +71,4 @@ Sin aprobar cada etapa no se habilita la siguiente. Sin examen aprobado, no hay 
 
 ---
 
-## Desarrollo local
-
-```bash
-cp .env.example .env
-docker-compose up -d
-npm run db:migrar && npm run db:seed
-npm run dev                    
+ *Equipo Vector Mineral · Hackathon Minera 2026*
