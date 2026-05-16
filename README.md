@@ -5,13 +5,15 @@ Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el pr
 **Desafío Nº 8 · Hackathon Minera 2026 · Equipo Vector Mineral**
 
 
+<br><br>
+
 <p align="center">
-  👉 
   <a href="./informe_hackathon/InformeSolucionMinerIA.pdf">
     <img src="https://img.shields.io/badge/Ver%20Informe%20Completo-2E7D32?style=for-the-badge&labelColor=2E7D32&logoColor=white" />
   </a>
-  👈
 </p>
+
+<br><br>
 
 ---
 
