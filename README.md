@@ -19,10 +19,6 @@ Sistema de inducción minera inteligente en San Juan, Argentina. Reemplaza el pr
 
 ---
 
-![Hackathon Minera 2026](./img/IMG_EXPO.jpg)
-
----
-
 ## Problema
 
 La industria minera en San Juan enfrenta desafíos críticos en los procesos de inducción y capacitación de personal: tiempos elevados de formación, baja trazabilidad del aprendizaje, riesgos operativos en entornos reales y dificultad para evaluar situaciones críticas antes del ingreso a la mina.
